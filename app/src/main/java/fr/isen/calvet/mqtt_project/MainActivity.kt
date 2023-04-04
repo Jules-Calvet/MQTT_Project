@@ -1,8 +1,10 @@
 package fr.isen.calvet.mqtt_project
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.hivemq.client.mqtt.MqttClient
 import com.hivemq.client.mqtt.MqttClientBuilder
@@ -25,25 +27,82 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val topicLed = "isen13/led"
-        val topicTemp = "isen13/temp"
-        val topicButton = "isen13/button"
-        val topicGetTemp = "isen13/getTemp"
+        val topicLed = "isen09/led"
+        val topicTemp = "isen09/temp"
+        val topicButton = "isen09/button"
+        val topicGetTemp = "isen09/getTemp"
+
+        var ledBlueOn = false
+        var ledGreenOn = false
+        var ledRedOn = false
 
         val led1on = "{\"id\": 1,\"state\": 1}"
         val led1off = "{\"id\": 1,\"state\": 0}"
+        val led2on = "{\"id\": 2,\"state\": 1 }"
+        val led2off = "{\"id\": 2,\"state\": 0 }"
+        val led3on = "{\"id\": 3,\"state\": 1 }"
+        val led3off = "{\"id\": 3,\"state\": 0 }"
+
+        hide()
 
         clientBuild()
         //connectHost()
         connectClient().thenAccept {
             if(it) {
+                show()
                 subscribe(topicButton)
                 subscribe(topicTemp)
 
-                publish(topicLed, led1on)
+                binding.led1.setOnClickListener {
+                    if(!ledBlueOn) {
+                        publish(topicLed, led1on)
+                        binding.led1.setColorFilter(Color.BLUE)
+                    } else {
+                        publish(topicLed, led1off)
+                        binding.led1.clearColorFilter()
+                    }
+                    ledBlueOn = !ledBlueOn
+                }
+                binding.led2.setOnClickListener {
+                    if(!ledGreenOn) {
+                        publish(topicLed, led2on)
+                        binding.led2.setColorFilter(Color.GREEN)
+                    } else {
+                        publish(topicLed, led2off)
+                        binding.led2.clearColorFilter()
+                    }
+                    ledGreenOn = !ledGreenOn
+                }
+                binding.led3.setOnClickListener {
+                    if(!ledRedOn) {
+                        publish(topicLed, led3on)
+                        binding.led3.setColorFilter(Color.RED)
+                    } else {
+                        publish(topicLed, led3off)
+                        binding.led3.clearColorFilter()
+                    }
+                    ledRedOn = !ledRedOn
+                }
+
             }
         }
 
+    }
+
+    //Show connect tools in the UI
+    fun show() {
+        runOnUiThread {
+            binding.group.visibility = View.VISIBLE
+            binding.status.visibility = View.GONE
+        }
+    }
+
+    //Hide connect tools in the UI
+    fun hide() {
+        runOnUiThread {
+            binding.group.visibility = View.GONE
+            binding.status.visibility = View.VISIBLE
+        }
     }
     private fun clientBuild(){
         /*var clientBuild = Mqtt3Client.builder()
