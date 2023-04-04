@@ -59,28 +59,44 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textNombre"
+        android:id="@+id/textButton1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:text="Nombre : "
+        android:text="Button 1 : "
         app:layout_constraintStart_toStartOf="@+id/led1"
         app:layout_constraintTop_toBottomOf="@+id/led2" />
 
     <TextView
-        android:id="@+id/nombre"
+        android:id="@+id/textButton2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="2dp"
-        android:text="nombre"
-        app:layout_constraintStart_toEndOf="@+id/textNombre"
-        app:layout_constraintTop_toTopOf="@+id/textNombre" />
+        android:text="Button 2 : "
+        app:layout_constraintStart_toStartOf="@+id/textButton1"
+        app:layout_constraintTop_toBottomOf="@+id/textButton1" />
+
+    <TextView
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="1dp"
+        android:text="button1"
+        app:layout_constraintStart_toEndOf="@+id/textButton1"
+        app:layout_constraintTop_toTopOf="@+id/textButton1" />
+
+    <TextView
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="button2"
+        app:layout_constraintStart_toEndOf="@+id/textButton2"
+        app:layout_constraintTop_toBottomOf="@+id/button1" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="led3,led2,led1,textViewLed,nombre,textNombre"
+        app:constraint_referenced_ids="led3,led2,led1,textViewLed,button1,textButton1"
         tools:layout_editor_absoluteX="92dp"
         tools:layout_editor_absoluteY="334dp" />
 

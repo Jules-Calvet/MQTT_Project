@@ -7,20 +7,26 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.hivemq.client.mqtt.MqttClient
-import com.hivemq.client.mqtt.MqttClientBuilder
+import com.hivemq.client.mqtt.MqttGlobalPublishFilter
 import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient
-import com.hivemq.client.mqtt.mqtt3.Mqtt3Client
 import com.hivemq.client.mqtt.mqtt3.message.connect.connack.Mqtt3ConnAck
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.suback.Mqtt3SubAck
 import fr.isen.calvet.mqtt_project.databinding.ActivityMainBinding
+import io.netty.util.AsciiString.contains
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
+import java.util.logging.Level.ALL
+import kotlin.text.Charsets.UTF_8
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding : ActivityMainBinding
     private lateinit var client : Mqtt3AsyncClient
+    private lateinit var message : String
+    private var cptButton1 : Int = 0
+    private var cptButton2 : Int = 0
     @SuppressLint("CheckResult")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +52,6 @@ class MainActivity : AppCompatActivity() {
         hide()
 
         clientBuild()
-        //connectHost()
         connectClient().thenAccept {
             if(it) {
                 show()
@@ -86,7 +91,7 @@ class MainActivity : AppCompatActivity() {
 
             }
         }
-
+        getMessage().toString()
     }
 
     //Show connect tools in the UI
@@ -115,15 +120,6 @@ class MainActivity : AppCompatActivity() {
 
         client = clientBuilder.useMqttVersion3().buildAsync()
     }
-    private fun connectHost(){
-        client = MqttClient.builder()
-            .useMqttVersion3()
-            .identifier("my-mqtt-client-id")
-            .serverHost("broker.mqttdashboard.com")
-            .serverPort(1883)
-            .useSslWithDefaultConfig()
-            .buildAsync()
-    }
     private fun connectClient(): CompletableFuture<Boolean> {
         var success = CompletableFuture<Boolean>()
         client.connectWith()
@@ -147,7 +143,9 @@ class MainActivity : AppCompatActivity() {
     private fun subscribe(topic : String){
         client.subscribeWith()
             .topicFilter(topic)
-            .callback { publish: Mqtt3Publish? -> }
+            .callback { publish: Mqtt3Publish? ->
+                message = String(publish!!.payloadAsBytes)
+            }
             .send()
             .whenComplete { subAck: Mqtt3SubAck?, throwable: Throwable? ->
                 if (throwable != null) {
@@ -157,7 +155,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
     }
-    private fun publish(topic : String , message : String){
+    private fun publish(topic : String , message : String) {
         client.publishWith()
             .topic(topic)
             .payload(message.toByteArray())
@@ -169,5 +167,26 @@ class MainActivity : AppCompatActivity() {
                     Log.d("publish", "success")
                 }
             }
+    }
+    private fun getMessage() {
+        client.toAsync().publishes(MqttGlobalPublishFilter.ALL) { publish: Mqtt3Publish ->
+            val message = publish.payloadAsBytes
+            Log.d("Received message: {} -> {}, ", "${publish.topic}, ${String(message, UTF_8)}")
+            if(contains(String(message, UTF_8),"id\":1")){
+                cptButton1 ++
+                runOnUiThread {
+                    binding.button1.text = cptButton1.toString()
+                }
+
+                Log.d("subscribe", "button1")
+            }
+            if(contains(String(message, UTF_8),"id\":2")){
+                cptButton2 ++
+                runOnUiThread {
+                    binding.button2.text = cptButton2.toString()
+                }
+                Log.d("subscribe", "button2")
+            }
+        }
     }
 }
