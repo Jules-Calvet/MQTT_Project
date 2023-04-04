@@ -2,6 +2,7 @@ package fr.isen.calvet.mqtt_project
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.hivemq.client.mqtt.MqttClient
 import com.hivemq.client.mqtt.MqttClientBuilder
@@ -12,6 +13,7 @@ import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.suback.Mqtt3SubAck
 import fr.isen.calvet.mqtt_project.databinding.ActivityMainBinding
 import java.util.*
+import java.util.concurrent.CompletableFuture
 
 
 class MainActivity : AppCompatActivity() {
@@ -23,22 +25,25 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val topicLed = "isen12/led"
-        val topicTemp = "isen12/temp"
-        val topicButton = "isen12/button"
-        val topicGetTemp = "isen12/getTemp"
+        val topicLed = "isen13/led"
+        val topicTemp = "isen13/temp"
+        val topicButton = "isen13/button"
+        val topicGetTemp = "isen13/getTemp"
 
-        val led1on = "{\\n\" + \" \\\"id\\\": 1,\\n\" + \" \\\"state\\\": 0\\n\" + \"}"
-        val led1off = "{\\n\" + \" \\\"id\\\": 1,\\n\" + \" \\\"state\\\": 0\\n\" + \"}"
+        val led1on = "{\"id\": 1,\"state\": 1}"
+        val led1off = "{\"id\": 1,\"state\": 0}"
 
         clientBuild()
-        connectHost()
-        connectClient()
+        //connectHost()
+        connectClient().thenAccept {
+            if(it) {
+                subscribe(topicButton)
+                subscribe(topicTemp)
 
-        subscribe(topicButton)
-        subscribe(topicTemp)
+                publish(topicLed, led1on)
+            }
+        }
 
-        publish(topicLed,led1on)
     }
     private fun clientBuild(){
         /*var clientBuild = Mqtt3Client.builder()
@@ -47,7 +52,7 @@ class MainActivity : AppCompatActivity() {
             .build()*/
         val clientBuilder = MqttClient.builder()
             .identifier(UUID.randomUUID().toString())
-            .serverHost("broker.hivemq.com")
+            .serverHost("broker.mqttdashboard.com")
 
         client = clientBuilder.useMqttVersion3().buildAsync()
     }
@@ -60,20 +65,25 @@ class MainActivity : AppCompatActivity() {
             .useSslWithDefaultConfig()
             .buildAsync()
     }
-    private fun connectClient(){
+    private fun connectClient(): CompletableFuture<Boolean> {
+        var success = CompletableFuture<Boolean>()
         client.connectWith()
-            .simpleAuth()
+            /*.simpleAuth()
             .username("androidApp")
             .password("1234".toByteArray())
-            .applySimpleAuth()
+            .applySimpleAuth()*/
             .send()
             .whenComplete { connAck: Mqtt3ConnAck?, throwable: Throwable? ->
                 if (throwable != null) {
-                    // handle failure
+                    Log.d("connect", "failure")
+                    success.complete(false)
                 } else {
-                    // setup subscribes or start publishing
+                    Log.d("connect", "success")
+                    success.complete(true)
                 }
             }
+        Log.d("success value", "$success")
+        return success
     }
     private fun subscribe(topic : String){
         client.subscribeWith()
@@ -82,9 +92,9 @@ class MainActivity : AppCompatActivity() {
             .send()
             .whenComplete { subAck: Mqtt3SubAck?, throwable: Throwable? ->
                 if (throwable != null) {
-                    // Handle failure to subscribe
+                    Log.d("subscribe", "failure")
                 } else {
-                    // Handle successful subscription, e.g. logging or incrementing a metric
+                    Log.d("subscribe", "success")
                 }
             }
     }
@@ -95,9 +105,9 @@ class MainActivity : AppCompatActivity() {
             .send()
             .whenComplete { publish: Mqtt3Publish?, throwable: Throwable? ->
                 if (throwable != null) {
-                    // handle failure to publish
+                    Log.d("publish", "failure")
                 } else {
-                    // handle successful publish, e.g. logging or incrementing a metric
+                    Log.d("publish", "success")
                 }
             }
     }
