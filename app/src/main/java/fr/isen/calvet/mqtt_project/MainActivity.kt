@@ -3,6 +3,7 @@ package fr.isen.calvet.mqtt_project
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
+import android.text.TextUtils.substring
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -16,8 +17,6 @@ import fr.isen.calvet.mqtt_project.databinding.ActivityMainBinding
 import io.netty.util.AsciiString.contains
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
-import java.util.logging.Level.ALL
 import kotlin.text.Charsets.UTF_8
 
 
@@ -27,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var message : String
     private var cptButton1 : Int = 0
     private var cptButton2 : Int = 0
+    private var temperature : String = ""
     @SuppressLint("CheckResult")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         var ledBlueOn = false
         var ledGreenOn = false
         var ledRedOn = false
+        var tempOn = false
 
         val led1on = "{\"id\": 1,\"state\": 1}"
         val led1off = "{\"id\": 1,\"state\": 0}"
@@ -48,6 +49,8 @@ class MainActivity : AppCompatActivity() {
         val led2off = "{\"id\": 2,\"state\": 0 }"
         val led3on = "{\"id\": 3,\"state\": 1 }"
         val led3off = "{\"id\": 3,\"state\": 0 }"
+
+        val getTemp = "{\"request\": 1}"
 
         hide()
 
@@ -91,7 +94,18 @@ class MainActivity : AppCompatActivity() {
 
             }
         }
-        getMessage().toString()
+        binding.buttonTemp.setOnClickListener {
+            if(!tempOn){
+                binding.buttonTemp.text = "getting temperature ..."
+                publish(topicGetTemp,getTemp)
+                getMessageTemp()
+            } else {
+                binding.buttonTemp.text = "get temperature"
+                binding.temperature.text = "... °C"
+            }
+            tempOn = !tempOn
+        }
+        getMessageLed().toString()
     }
 
     //Show connect tools in the UI
@@ -110,10 +124,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private fun clientBuild(){
-        /*var clientBuild = Mqtt3Client.builder()
-            .identifier(UUID.randomUUID().toString())
-            .serverHost("broker.hivemq.com")
-            .build()*/
         val clientBuilder = MqttClient.builder()
             .identifier(UUID.randomUUID().toString())
             .serverHost("broker.mqttdashboard.com")
@@ -123,10 +133,6 @@ class MainActivity : AppCompatActivity() {
     private fun connectClient(): CompletableFuture<Boolean> {
         var success = CompletableFuture<Boolean>()
         client.connectWith()
-            /*.simpleAuth()
-            .username("androidApp")
-            .password("1234".toByteArray())
-            .applySimpleAuth()*/
             .send()
             .whenComplete { connAck: Mqtt3ConnAck?, throwable: Throwable? ->
                 if (throwable != null) {
@@ -168,7 +174,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
     }
-    private fun getMessage() {
+    private fun getMessageLed() {
         client.toAsync().publishes(MqttGlobalPublishFilter.ALL) { publish: Mqtt3Publish ->
             val message = publish.payloadAsBytes
             Log.d("Received message: {} -> {}, ", "${publish.topic}, ${String(message, UTF_8)}")
@@ -177,7 +183,6 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     binding.button1.text = cptButton1.toString()
                 }
-
                 Log.d("subscribe", "button1")
             }
             if(contains(String(message, UTF_8),"id\":2")){
@@ -186,6 +191,20 @@ class MainActivity : AppCompatActivity() {
                     binding.button2.text = cptButton2.toString()
                 }
                 Log.d("subscribe", "button2")
+            }
+        }
+    }
+    private fun getMessageTemp() {
+        Log.d("gettemp", "start")
+        client.toAsync().publishes(MqttGlobalPublishFilter.ALL) { publish: Mqtt3Publish ->
+            val message = publish.payloadAsBytes
+            Log.d("Received message: {} -> {}, ", "${publish.topic}, ${String(message, UTF_8)}")
+            if(contains(String(message, UTF_8),"value")){
+                temperature = substring(String(message, UTF_8), 9,11) + " °C"
+                runOnUiThread {
+                    binding.temperature.text = temperature
+                }
+                Log.d("subscribe", "temp")
             }
         }
     }
