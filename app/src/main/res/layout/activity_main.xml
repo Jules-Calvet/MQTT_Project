@@ -80,6 +80,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="1dp"
+        android:text="0"
         app:layout_constraintStart_toEndOf="@+id/textButton1"
         app:layout_constraintTop_toTopOf="@+id/textButton1" />
 
@@ -87,6 +88,7 @@
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="0"
         app:layout_constraintStart_toEndOf="@+id/textButton2"
         app:layout_constraintTop_toBottomOf="@+id/button1" />
 
@@ -94,7 +96,7 @@
         android:id="@+id/group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="led3,led2,led1,textViewLed,button1,textButton1,numeroButton,dernierButton"
+        app:constraint_referenced_ids="led3,led2,led1,textViewLed,button1,textButton1,numeroButton,dernierButton,textButton2,button2,buttonGetTemp,uniteTemp,textView3,temp,textView4,textView5"
         tools:layout_editor_absoluteX="92dp"
         tools:layout_editor_absoluteY="334dp" />
 
