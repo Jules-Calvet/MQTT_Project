@@ -94,14 +94,14 @@ class MainActivity : AppCompatActivity() {
 
             }
         }
-        binding.buttonTemp.setOnClickListener {
+        binding.buttonGetTemp.setOnClickListener {
             if(!tempOn){
-                binding.buttonTemp.text = "getting temperature ..."
+                binding.buttonGetTemp.text = "Getting temperature ..."
                 publish(topicGetTemp,getTemp)
                 getMessageTemp()
             } else {
-                binding.buttonTemp.text = "get temperature"
-                binding.temperature.text = "... °C"
+                binding.buttonGetTemp.text = "Get temperature"
+                binding.temp.text = "..."
             }
             tempOn = !tempOn
         }
@@ -182,6 +182,7 @@ class MainActivity : AppCompatActivity() {
                 cptButton1 ++
                 runOnUiThread {
                     binding.button1.text = cptButton1.toString()
+                    binding.numeroButton.text = "1"
                 }
                 Log.d("subscribe", "button1")
             }
@@ -189,6 +190,7 @@ class MainActivity : AppCompatActivity() {
                 cptButton2 ++
                 runOnUiThread {
                     binding.button2.text = cptButton2.toString()
+                    binding.numeroButton.text = "2"
                 }
                 Log.d("subscribe", "button2")
             }
@@ -200,9 +202,9 @@ class MainActivity : AppCompatActivity() {
             val message = publish.payloadAsBytes
             Log.d("Received message: {} -> {}, ", "${publish.topic}, ${String(message, UTF_8)}")
             if(contains(String(message, UTF_8),"value")){
-                temperature = substring(String(message, UTF_8), 9,11) + " °C"
+                temperature = substring(String(message, UTF_8), 9,11)
                 runOnUiThread {
-                    binding.temperature.text = temperature
+                    binding.temp.text = temperature
                 }
                 Log.d("subscribe", "temp")
             }

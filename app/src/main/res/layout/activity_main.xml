@@ -62,10 +62,10 @@
         android:id="@+id/textButton1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="16dp"
         android:text="Button 1 : "
         app:layout_constraintStart_toStartOf="@+id/led1"
-        app:layout_constraintTop_toBottomOf="@+id/led2" />
+        app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
     <TextView
         android:id="@+id/textButton2"
@@ -80,24 +80,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="1dp"
-        android:text="button1"
         app:layout_constraintStart_toEndOf="@+id/textButton1"
         app:layout_constraintTop_toTopOf="@+id/textButton1" />
-
-    <TextView
-        android:id="@+id/temperature"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="temperature"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonTemp" />
 
     <TextView
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="button2"
         app:layout_constraintStart_toEndOf="@+id/textButton2"
         app:layout_constraintTop_toBottomOf="@+id/button1" />
 
@@ -105,18 +94,79 @@
         android:id="@+id/group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="led3,led2,led1,textViewLed,button1,textButton1"
+        app:constraint_referenced_ids="led3,led2,led1,textViewLed,button1,textButton1,numeroButton,dernierButton"
         tools:layout_editor_absoluteX="92dp"
         tools:layout_editor_absoluteY="334dp" />
 
-    <Button
-        android:id="@+id/buttonTemp"
+    <TextView
+        android:id="@+id/dernierButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:text="Get Temp"
+        android:layout_marginTop="24dp"
+        android:text="Dernier boutton appuyé :"
+        app:layout_constraintStart_toStartOf="@+id/textButton1"
+        app:layout_constraintTop_toBottomOf="@+id/textButton1" />
+
+    <TextView
+        android:id="@+id/numeroButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@+id/dernierButton"
+        app:layout_constraintTop_toTopOf="@+id/dernierButton" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LED bleue"
+        app:layout_constraintEnd_toEndOf="@+id/led1"
+        app:layout_constraintStart_toStartOf="@+id/led1"
+        app:layout_constraintTop_toBottomOf="@+id/led1" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LED verte"
+        app:layout_constraintEnd_toEndOf="@+id/led2"
+        app:layout_constraintStart_toStartOf="@+id/led2"
+        app:layout_constraintTop_toBottomOf="@+id/led1" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LED rouge"
+        app:layout_constraintEnd_toEndOf="@+id/led3"
+        app:layout_constraintStart_toStartOf="@+id/led3"
+        app:layout_constraintTop_toBottomOf="@+id/led1" />
+
+    <Button
+        android:id="@+id/buttonGetTemp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Get temperature"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textButton2" />
+        app:layout_constraintTop_toBottomOf="@+id/dernierButton" />
+
+    <TextView
+        android:id="@+id/temp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="@+id/buttonGetTemp"
+        app:layout_constraintStart_toStartOf="@+id/buttonGetTemp"
+        app:layout_constraintTop_toBottomOf="@+id/buttonGetTemp" />
+
+    <TextView
+        android:id="@+id/uniteTemp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="°C"
+        app:layout_constraintStart_toEndOf="@+id/temp"
+        app:layout_constraintTop_toTopOf="@+id/temp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
