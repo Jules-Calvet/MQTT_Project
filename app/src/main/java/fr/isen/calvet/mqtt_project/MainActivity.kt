@@ -10,11 +10,13 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.hivemq.client.mqtt.MqttClient
 import com.hivemq.client.mqtt.MqttGlobalPublishFilter
-import com.hivemq.client.mqtt.datatypes.MqttQos
 import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient
 import com.hivemq.client.mqtt.mqtt3.message.connect.connack.Mqtt3ConnAck
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.suback.Mqtt3SubAck
+import com.jjoe64.graphview.series.DataPoint
+import com.jjoe64.graphview.series.DataPointInterface
+import com.jjoe64.graphview.series.LineGraphSeries
 import fr.isen.calvet.mqtt_project.databinding.ActivityMainBinding
 import io.netty.util.AsciiString.contains
 import java.util.*
@@ -25,10 +27,11 @@ import kotlin.text.Charsets.UTF_8
 class MainActivity : AppCompatActivity() {
     private lateinit var binding : ActivityMainBinding
     private lateinit var client : Mqtt3AsyncClient
-    private lateinit var message : String
+    private lateinit var tempList : Array<dataTemp>
     private var cptButton1 : Int = 0
     private var cptButton2 : Int = 0
     private var temperature : String = ""
+    private var cpt : Double = 0.0
 
     @SuppressLint("CheckResult")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +43,8 @@ class MainActivity : AppCompatActivity() {
         var ledGreenOn = false
         var ledRedOn = false
         var tempOn = false
+
+        tempList = arrayOf(dataTemp(), dataTemp(), dataTemp())
 
         val topicLed = "isen09/led"
         val topicTemp = "isen09/temp"
@@ -121,8 +126,9 @@ class MainActivity : AppCompatActivity() {
             if(!tempOn){
                 binding.buttonGetTemp.text = "Getting temperature ..."
                 handler.post(r)
+
             } else {
-                binding.buttonGetTemp.text = "Get temperature"
+                binding.buttonGetTemp.text = "Get temp"
                 binding.temp.text = "..."
                 handler.removeCallbacks(r)
             }
@@ -230,9 +236,37 @@ class MainActivity : AppCompatActivity() {
                 temperature = substring(message, message.indexOf(':') + 1, message.indexOf('}'))
                 runOnUiThread {
                     binding.temp.text = temperature
+                    val newTemp = dataTemp()
+                    newTemp.addTemp(temperature.toDouble(),cpt)
+                    Log.d("temp Received message: {} -> {}, cpt ", "$cpt")
+                    tempList += newTemp
+                    graphDisplay()
+                    cpt++
                 }
                 Log.d("subscribe", "temp")
             }
+        }
+    }
+    private fun graphDisplay(){
+        val series = LineGraphSeries<DataPointInterface>()
+
+        for (i in tempList.indices) {
+            val tempObj = tempList[i]
+            val dataPoint = DataPoint(tempObj.cpt, tempObj.temperature)
+            series.appendData(dataPoint, true, tempList.size)
+        }
+
+        binding.graph.addSeries(series)
+
+    }
+
+    class dataTemp{
+        var temperature : Double = 0.0
+        var cpt : Double = 0.0
+
+        fun addTemp(Temp: Double, Cpt : Double) {
+            temperature = Temp
+            cpt = Cpt
         }
     }
 }
