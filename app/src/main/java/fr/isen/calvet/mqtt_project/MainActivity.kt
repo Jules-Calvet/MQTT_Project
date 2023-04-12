@@ -2,11 +2,13 @@ package fr.isen.calvet.mqtt_project
 
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.text.TextUtils.substring
 import android.util.Log
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.hivemq.client.mqtt.MqttClient
 import com.hivemq.client.mqtt.MqttGlobalPublishFilter
@@ -14,6 +16,7 @@ import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient
 import com.hivemq.client.mqtt.mqtt3.message.connect.connack.Mqtt3ConnAck
 import com.hivemq.client.mqtt.mqtt3.message.publish.Mqtt3Publish
 import com.hivemq.client.mqtt.mqtt3.message.subscribe.suback.Mqtt3SubAck
+import com.jjoe64.graphview.Viewport
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.DataPointInterface
 import com.jjoe64.graphview.series.LineGraphSeries
@@ -32,7 +35,9 @@ class MainActivity : AppCompatActivity() {
     private var cptButton2 : Int = 0
     private var temperature : String = ""
     private var cpt : Double = 0.0
+    private var firstClickTemp : Boolean = false
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("CheckResult")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +69,7 @@ class MainActivity : AppCompatActivity() {
         val r = object : Runnable {
             override fun run() {
                 publish(topicGetTemp, getTemp);
-                handler.postDelayed(this, 5000);
+                handler.postDelayed(this, 2000);
             }
         }
 
@@ -124,13 +129,16 @@ class MainActivity : AppCompatActivity() {
         }
         binding.buttonGetTemp.setOnClickListener {
             if(!tempOn){
+                subscribe(topicTemp)
                 binding.buttonGetTemp.text = "Getting temperature ..."
                 handler.post(r)
 
             } else {
+                unsubscribe(topicTemp)
                 binding.buttonGetTemp.text = "Get temp"
                 binding.temp.text = "..."
                 handler.removeCallbacks(r)
+
             }
             tempOn = !tempOn
         }
@@ -191,6 +199,11 @@ class MainActivity : AppCompatActivity() {
                     Log.d("subscribe", "success")
                 }
             }
+    }
+    private fun unsubscribe(topic : String){
+        client.unsubscribeWith()
+            .topicFilter(topic)
+            .send()
     }
     private fun publish(topic : String , message : String) {
         client.publishWith()
@@ -255,9 +268,16 @@ class MainActivity : AppCompatActivity() {
             val dataPoint = DataPoint(tempObj.cpt, tempObj.temperature)
             series.appendData(dataPoint, true, tempList.size)
         }
-
         binding.graph.addSeries(series)
 
+        // Set the visible x-axis range of the graph
+        val minX = series.lowestValueX
+        val maxX = series.highestValueX
+        val rangeWidth = maxX - minX
+        val viewport = binding.graph.viewport
+        viewport.setMinX(minX)
+        viewport.setMaxX(maxX + rangeWidth / 5) // Add 1/5 of the range to the max value
+        viewport.isXAxisBoundsManual = true
     }
 
     class dataTemp{
