@@ -268,13 +268,20 @@ class MainActivity : AppCompatActivity() {
             val dataPoint = DataPoint(tempObj.cpt, tempObj.temperature)
             series.appendData(dataPoint, true, tempList.size)
         }
+
+
         binding.graph.addSeries(series)
+        val viewport = binding.graph.viewport
+
+        //set the YAxis between 5 bellow the minimum value and 5 above the maximum value of the graph
+        viewport.isYAxisBoundsManual = true
+        viewport.setMinY(20.0)
+        viewport.setMaxY(series.highestValueY + 5)
 
         // Set the visible x-axis range of the graph
-        val minX = series.lowestValueX
+        val minX = 0.1
         val maxX = series.highestValueX
         val rangeWidth = maxX - minX
-        val viewport = binding.graph.viewport
         viewport.setMinX(minX)
         viewport.setMaxX(maxX + rangeWidth / 5) // Add 1/5 of the range to the max value
         viewport.isXAxisBoundsManual = true
