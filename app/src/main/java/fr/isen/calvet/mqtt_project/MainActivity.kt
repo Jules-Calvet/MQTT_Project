@@ -35,7 +35,6 @@ class MainActivity : AppCompatActivity() {
     private var cptButton2 : Int = 0
     private var temperature : String = ""
     private var cpt : Double = 0.0
-    private var firstClickTemp : Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("CheckResult")
@@ -83,8 +82,7 @@ class MainActivity : AppCompatActivity() {
                 subscribe(topicButton)
                 subscribe(topicTemp)
 
-                getMessageButton().toString()
-                getMessageTemp()
+                getMessage()
 
                 Log.d("IS CLICKABLE ? 1", binding.led1.isClickable.toString())
                 Log.d("IS CLICKABLE ? 2", binding.led2.isClickable.toString())
@@ -129,12 +127,10 @@ class MainActivity : AppCompatActivity() {
         }
         binding.buttonGetTemp.setOnClickListener {
             if(!tempOn){
-                subscribe(topicTemp)
                 binding.buttonGetTemp.text = "Getting temperature ..."
                 handler.post(r)
 
             } else {
-                unsubscribe(topicTemp)
                 binding.buttonGetTemp.text = "Get temp"
                 binding.temp.text = "..."
                 handler.removeCallbacks(r)
@@ -188,9 +184,6 @@ class MainActivity : AppCompatActivity() {
     private fun subscribe(topic : String){
         client.subscribeWith()
             .topicFilter(topic)
-            //.callback { publish: Mqtt3Publish? ->
-                //message = String(publish!!.payloadAsBytes)
-            //}
             .send()
             .whenComplete { subAck: Mqtt3SubAck?, throwable: Throwable? ->
                 if (throwable != null) {
@@ -199,11 +192,6 @@ class MainActivity : AppCompatActivity() {
                     Log.d("subscribe", "success")
                 }
             }
-    }
-    private fun unsubscribe(topic : String){
-        client.unsubscribeWith()
-            .topicFilter(topic)
-            .send()
     }
     private fun publish(topic : String , message : String) {
         client.publishWith()
@@ -218,48 +206,47 @@ class MainActivity : AppCompatActivity() {
                 }
             }
     }
-    private fun getMessageButton() {
-        client.toAsync().publishes(MqttGlobalPublishFilter.ALL) { publish: Mqtt3Publish ->
-            val message = publish.payloadAsBytes
-            Log.d("Received message: {} -> {}, ", "${publish.topic}, ${String(message, UTF_8)}")
-            if(contains(String(message, UTF_8),"id\":1")){
-                cptButton1 ++
-                runOnUiThread {
-                    binding.button1.text = cptButton1.toString()
-                    binding.numeroButton.text = "1"
-                }
-                Log.d("subscribe", "button1")
-            }
-            if(contains(String(message, UTF_8),"id\":2")){
-                cptButton2 ++
-                runOnUiThread {
-                    binding.button2.text = cptButton2.toString()
-                    binding.numeroButton.text = "2"
-                }
-                Log.d("subscribe", "button2")
-            }
-        }
-    }
-    private fun getMessageTemp() {
-        Log.d("gettemp", "start")
+
+    private fun getMessage() {
         client.toAsync().publishes(MqttGlobalPublishFilter.ALL) { publish: Mqtt3Publish ->
             val message = publish.payloadAsBytes.toString(UTF_8)
-            Log.d("temp Received message: {} -> {}, ", "${publish.topic}, $message")
-            if(contains(message,"value")){
-                temperature = substring(message, message.indexOf(':') + 1, message.indexOf('}'))
-                runOnUiThread {
-                    binding.temp.text = temperature
-                    val newTemp = dataTemp()
-                    newTemp.addTemp(temperature.toDouble(),cpt)
-                    Log.d("temp Received message: {} -> {}, cpt ", "$cpt")
-                    tempList += newTemp
-                    graphDisplay()
-                    cpt++
+            if(publish.topic.toString().contains("button")) {
+                    Log.d("Received message: {} -> {}, ", "${publish.topic}, $message")
+                    if(contains(message,"id\":1")){
+                        cptButton1 ++
+                        runOnUiThread {
+                            binding.button1.text = cptButton1.toString()
+                            binding.numeroButton.text = "1"
+                        }
+                        //Log.d("subscribe", "button1")
+                    }
+                    if(contains(message,"id\":2")){
+                        cptButton2 ++
+                        runOnUiThread {
+                            binding.button2.text = cptButton2.toString()
+                            binding.numeroButton.text = "2"
+                        }
+                        //Log.d("subscribe", "button2")
+                    }
+            } else if(publish.topic.toString().contains("temp")) {
+                Log.d("temp Received message: {} -> {}, ", "${publish.topic}, $message")
+                if(contains(message,"value")){
+                    temperature = substring(message, message.indexOf(':') + 1, message.indexOf('}'))
+                    runOnUiThread {
+                        binding.temp.text = temperature
+                        val newTemp = dataTemp()
+                        newTemp.addTemp(temperature.toDouble(),cpt)
+                        Log.d("temp Received message: {} -> {}, cpt ", "$cpt")
+                        tempList += newTemp
+                        graphDisplay()
+                        cpt++
+                    }
+                    //Log.d("subscribe", "temp")
                 }
-                Log.d("subscribe", "temp")
             }
         }
     }
+
     private fun graphDisplay(){
         val series = LineGraphSeries<DataPointInterface>()
 
